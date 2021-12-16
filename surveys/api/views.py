@@ -1,4 +1,5 @@
-from rest_framework import viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, filters
 from rest_framework.request import Request
 from rest_framework.serializers import ValidationError
 from rest_framework.authentication import BasicAuthentication
@@ -40,6 +41,8 @@ class AdminModelViewSet(viewsets.ModelViewSet):
 class SurveyViewSet(AdminModelViewSet):
     serializer_class = SurveySerializer
     queryset = Survey.objects.all()
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["name", "description"]
 
     def get_permissions(self):
         if self.action == "list":
@@ -81,11 +84,17 @@ class SurveyViewSet(AdminModelViewSet):
 class QuestionViewSet(AdminModelViewSet):
     serializer_class = QuestionSerializer
     queryset = Question.objects.all()
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    filterset_fields = ["question_type", "survey"]
+    search_fields = ["text"]
 
 
 class AnswerViewSet(AdminModelViewSet):
     serializer_class = AnswerSerializer
     queryset = Answer.objects.all()
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    search_fields = ["text"]
+    filterset_fields = ["question"]
 
 
 class StartedSurveyView(GenericViewSet, ListModelMixin, RetrieveModelMixin):
