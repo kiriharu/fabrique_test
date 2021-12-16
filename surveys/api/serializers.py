@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from surveys.models import Survey
+from surveys.models import Survey, Question, Answer
 
 
 class SurveySerializer(serializers.ModelSerializer):
@@ -32,4 +32,27 @@ class UpdateSurveySerializer(serializers.ModelSerializer):
             "name",
             "end_date",
             "description"
+        )
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Question
+        fields = (
+            "id",
+            "text",
+            "survey",
+            "question_type"
+        )
+
+
+class AnswerSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Answer
+        fields = (
+            "id",
+            "question",
+            "text"
         )

@@ -2,9 +2,15 @@ from rest_framework import viewsets
 
 from surveys.api.serializers import (
     SurveySerializer,
-    UpdateSurveySerializer
+    UpdateSurveySerializer,
+    QuestionSerializer,
+    AnswerSerializer
 )
-from surveys.models import Survey
+from surveys.models import (
+    Survey,
+    Question,
+    Answer
+)
 
 
 class SurveyViewSet(viewsets.ModelViewSet):
@@ -17,3 +23,12 @@ class SurveyViewSet(viewsets.ModelViewSet):
             return UpdateSurveySerializer
         return serializer_class
 
+
+class QuestionViewSet(viewsets.ModelViewSet):
+    serializer_class = QuestionSerializer
+    queryset = Question.objects.all()
+
+
+class AnswerViewSet(viewsets.ModelViewSet):
+    serializer_class = AnswerSerializer
+    queryset = Answer.objects.all()
