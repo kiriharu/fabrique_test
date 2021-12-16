@@ -14,3 +14,15 @@ class SurveySerializer(serializers.ModelSerializer):
             "end_date",
             "description"
         )
+
+
+class UpdateSurveySerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Survey
+        fields = (
+            "id",
+            "name",
+            "end_date",
+            "description"
+        )
