@@ -13,7 +13,7 @@ from surveys.api.serializers import (
     QuestionSerializer,
     AnswerSerializer,
     StartedSurveySerializer,
-    CreateSurveyAnswerSerializer
+    CreateSurveyAnswerSerializer, StartSurveySerializer
 )
 from surveys.models import (
     Survey,
@@ -54,14 +54,19 @@ class SurveyViewSet(AdminModelViewSet):
 
     @action(
         detail=True,
-        methods=['GET'],
+        methods=['POST'],
         permission_classes=[],
-        queryset=Survey.get_active()
+        queryset=Survey.get_active(),
+        serializer_class=StartSurveySerializer
     )
     def start(self, request, pk=None):
         survey = self.get_object()
+
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data.get("user")
         started_survey_id = StartedSurvey.start_passing(
-            survey_id=survey.pk, user_id=request.user.id
+            survey_id=survey.pk, user=user
         )
         return Response({"started": started_survey_id})
 
@@ -99,9 +104,13 @@ class StartedSurveyView(GenericViewSet, ListModelMixin, RetrieveModelMixin):
         serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
 
+        user = serializer.validated_data.get("user")
         question = serializer.validated_data.get("question")
         answer = serializer.validated_data.get("answer")
         text = serializer.validated_data.get("text")
+
+        if not user == started_survey.user:
+            raise ValidationError({"user": "This user is not started this survey"})
 
         if not check_question_belong_to_survey(started_survey, question):
             raise ValidationError({"question": "Selected question does not belong to survey"})

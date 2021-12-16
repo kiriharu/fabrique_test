@@ -30,7 +30,6 @@ class SurveySerializer(serializers.ModelSerializer):
 
 
 class UpdateSurveySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Survey
         fields = (
@@ -42,7 +41,6 @@ class UpdateSurveySerializer(serializers.ModelSerializer):
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Question
         fields = (
@@ -72,6 +70,10 @@ class AnswerSerializer(serializers.ModelSerializer):
         )
 
 
+class StartSurveySerializer(serializers.Serializer):
+    user = serializers.IntegerField()
+
+
 class SurveyAnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = SurveyAnswer
@@ -85,7 +87,16 @@ class SurveyAnswerSerializer(serializers.ModelSerializer):
 
 class StartedSurveySerializer(serializers.ModelSerializer):
 
-    answers = SurveyAnswerSerializer(many=True, source="surveyanswer_set")
+    class AnswersSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = SurveyAnswer
+            fields = (
+                "answer",
+                "text",
+                "question"
+            )
+
+    answers = AnswersSerializer(many=True, source="surveyanswer_set")
 
     class Meta:
         model = StartedSurvey
@@ -97,12 +108,15 @@ class StartedSurveySerializer(serializers.ModelSerializer):
 
 
 class CreateSurveyAnswerSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField()
+
     class Meta:
         model = SurveyAnswer
         fields = (
             "question",
             "answer",
-            "text"
+            "text",
+            "user"
         )
 
     def validate(self, data):

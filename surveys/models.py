@@ -1,10 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from django.contrib.auth import get_user_model
 from django.db import models
-
-User = get_user_model()
 
 
 class Survey(models.Model):
@@ -52,11 +49,7 @@ class Answer(models.Model):
 
 
 class StartedSurvey(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        null=True
-    )
+    user = models.IntegerField()
     survey = models.ForeignKey(
         Survey,
         on_delete=models.CASCADE,
@@ -64,8 +57,8 @@ class StartedSurvey(models.Model):
     )
 
     @classmethod
-    def start_passing(cls, survey_id: int, user_id: Optional[int]) -> int:
-        survey = cls.objects.create(survey_id=survey_id, user_id=user_id)
+    def start_passing(cls, survey_id: int, user: Optional[int]) -> int:
+        survey = cls.objects.create(survey_id=survey_id, user=user)
         return survey.id
 
 
