@@ -49,6 +49,14 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class AnswerSerializer(serializers.ModelSerializer):
 
+    def validate(self, data):
+        question: Question = data['question']
+        if question.question_type == Question.TEXT:
+            raise serializers.ValidationError(
+                {"text": f'Question with type {Question.TEXT} can\'t have predefined answers'}
+            )
+        return data
+
     class Meta:
         model = Answer
         fields = (
