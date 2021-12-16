@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.serializers import ValidationError
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
@@ -18,8 +19,10 @@ from surveys.models import (
     Survey,
     Question,
     Answer,
-    StartedSurvey, SurveyAnswer
+    StartedSurvey,
+    SurveyAnswer
 )
+from surveys.services import check_question_belong_to_survey, check_only_one_answer
 
 
 class AdminModelViewSet(viewsets.ModelViewSet):
@@ -88,7 +91,8 @@ class StartedSurveyView(GenericViewSet, ListModelMixin, RetrieveModelMixin):
     @action(
         detail=True,
         methods=["POST"],
-        serializer_class=CreateSurveyAnswerSerializer
+        serializer_class=CreateSurveyAnswerSerializer,
+        queryset=StartedSurvey.objects.select_related("survey")
     )
     def answer(self, request, pk=None):
         started_survey: StartedSurvey = self.get_object()
@@ -98,6 +102,12 @@ class StartedSurveyView(GenericViewSet, ListModelMixin, RetrieveModelMixin):
         question = serializer.validated_data.get("question")
         answer = serializer.validated_data.get("answer")
         text = serializer.validated_data.get("text")
+
+        if not check_question_belong_to_survey(started_survey, question):
+            raise ValidationError({"question": "Selected question does not belong to survey"})
+
+        if check_only_one_answer(started_survey, question):
+            raise ValidationError({"answer": "Only one answer allowed in text/single choose question type"})
 
         result = SurveyAnswer.add(question, started_survey, answer, text)
         return Response({"ok": result.id})

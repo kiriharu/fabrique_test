@@ -91,7 +91,8 @@ class StartedSurveySerializer(serializers.ModelSerializer):
         model = StartedSurvey
         fields = (
             "id",
-            "answers"
+            "survey",
+            "answers",
         )
 
 
@@ -103,3 +104,33 @@ class CreateSurveyAnswerSerializer(serializers.ModelSerializer):
             "answer",
             "text"
         )
+
+    def validate(self, data):
+
+        question: Question = data.get("question")
+        answer: Answer = data.get("answer")
+        text = data.get("text")
+
+        if answer and text:
+            raise serializers.ValidationError(
+                {"answer": "Text or answer should be defined"}
+            )
+
+        if question.question_type == Question.TEXT:
+            if not text:
+                raise serializers.ValidationError(
+                    {"text": "Text answer is required in text question type"}
+                )
+
+        if question.question_type in (Question.SINGLE_CHOICE, Question.MULTIPLE_CHOICE):
+            if not answer:
+                raise serializers.ValidationError(
+                    {"question": "Answer is required in single/multiple question type"}
+                )
+
+        if question and answer and question.pk != answer.question_id:
+            raise serializers.ValidationError(
+                {"answer": "This answer does not belong to sended question"}
+            )
+
+        return data
