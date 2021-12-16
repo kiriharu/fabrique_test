@@ -1,4 +1,6 @@
 from rest_framework import viewsets
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
 
 from surveys.api.serializers import (
     SurveySerializer,
@@ -13,7 +15,12 @@ from surveys.models import (
 )
 
 
-class SurveyViewSet(viewsets.ModelViewSet):
+class AdminModelViewSet(viewsets.ModelViewSet):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [IsAdminUser, IsAuthenticated]
+
+
+class SurveyViewSet(AdminModelViewSet):
     serializer_class = SurveySerializer
     queryset = Survey.objects.all()
 
@@ -24,11 +31,11 @@ class SurveyViewSet(viewsets.ModelViewSet):
         return serializer_class
 
 
-class QuestionViewSet(viewsets.ModelViewSet):
+class QuestionViewSet(AdminModelViewSet):
     serializer_class = QuestionSerializer
     queryset = Question.objects.all()
 
 
-class AnswerViewSet(viewsets.ModelViewSet):
+class AnswerViewSet(AdminModelViewSet):
     serializer_class = AnswerSerializer
     queryset = Answer.objects.all()
