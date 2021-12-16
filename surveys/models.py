@@ -1,6 +1,11 @@
 from datetime import datetime
+from typing import Optional
 
+from django.contrib.auth import get_user_model
 from django.db import models
+
+
+User = get_user_model()
 
 
 class Survey(models.Model):
@@ -32,7 +37,7 @@ class Question(models.Model):
         (SINGLE_CHOICE, "Question with one choice"),
         (MULTIPLE_CHOICE, "Question with multiple choices")
     )
-    survey = models.ForeignKey('Survey', on_delete=models.CASCADE)
+    survey = models.ForeignKey('Survey', on_delete=models.CASCADE, related_name="questions")
     text = models.TextField()
     question_type = models.CharField(choices=QUESTION_TYPE, max_length=15)
 
@@ -41,8 +46,33 @@ class Question(models.Model):
 
 
 class Answer(models.Model):
-    question = models.ForeignKey('Question', on_delete=models.CASCADE)
+    question = models.ForeignKey('Question', on_delete=models.CASCADE, related_name="answers")
     text = models.TextField()
 
     def __str__(self):
         return self.text
+
+
+class StartedSurvey(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True
+    )
+    survey = models.ForeignKey(
+        Survey,
+        on_delete=models.CASCADE,
+        related_name="stared_surveys"
+    )
+
+    @classmethod
+    def start_passing(cls, survey_id: int, user_id: Optional[int]) -> int:
+        survey = cls.objects.create(survey_id=survey_id, user_id=user_id)
+        return survey.id
+
+
+class SurveyAnswer(models.Model):
+    question = models.ForeignKey('Question', on_delete=models.CASCADE)
+    survey = models.ForeignKey('StartedSurvey', on_delete=models.CASCADE)
+    answer = models.ForeignKey('Answer', on_delete=models.CASCADE)
+    text = models.TextField(null=True)
