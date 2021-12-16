@@ -5,6 +5,13 @@ from surveys.models import Survey
 
 class SurveySerializer(serializers.ModelSerializer):
 
+    def validate(self, data):
+        if data['start_date'] > data['end_date']:
+            raise serializers.ValidationError(
+                {"start_date": "Start date is bigger then end date"}
+            )
+        return data
+
     class Meta:
         model = Survey
         fields = (
