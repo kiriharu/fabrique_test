@@ -1,7 +1,10 @@
+from datetime import datetime
+
 from django.db import models
 
 
 class Survey(models.Model):
+
     name = models.CharField(max_length=200)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
@@ -9,6 +12,14 @@ class Survey(models.Model):
 
     def __str__(self):
         return self.name
+
+    @classmethod
+    def get_active(cls):
+        return cls.objects.filter(
+            start_date__lte=datetime.now()
+        ).filter(
+            end_date__gte=datetime.now()
+        )
 
 
 class Question(models.Model):
