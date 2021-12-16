@@ -4,12 +4,10 @@ from typing import Optional
 from django.contrib.auth import get_user_model
 from django.db import models
 
-
 User = get_user_model()
 
 
 class Survey(models.Model):
-
     name = models.CharField(max_length=200)
     start_date = models.DateTimeField()
     end_date = models.DateTimeField()
@@ -74,5 +72,20 @@ class StartedSurvey(models.Model):
 class SurveyAnswer(models.Model):
     question = models.ForeignKey('Question', on_delete=models.CASCADE)
     survey = models.ForeignKey('StartedSurvey', on_delete=models.CASCADE)
-    answer = models.ForeignKey('Answer', on_delete=models.CASCADE)
+    answer = models.ForeignKey('Answer', on_delete=models.CASCADE, null=True)
     text = models.TextField(null=True)
+
+    @classmethod
+    def add(
+        cls,
+        question: Question,
+        survey: StartedSurvey,
+        answer: Optional[Answer],
+        text: Optional[str]
+    ) -> 'SurveyAnswer':
+        return cls.objects.create(
+            question=question,
+            survey=survey,
+            answer=answer,
+            text=text,
+        )

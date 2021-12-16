@@ -11,13 +11,14 @@ from surveys.api.serializers import (
     UpdateSurveySerializer,
     QuestionSerializer,
     AnswerSerializer,
-    StartedSurveySerializer
+    StartedSurveySerializer,
+    CreateSurveyAnswerSerializer
 )
 from surveys.models import (
     Survey,
     Question,
     Answer,
-    StartedSurvey
+    StartedSurvey, SurveyAnswer
 )
 
 
@@ -83,3 +84,20 @@ class StartedSurveyView(GenericViewSet, ListModelMixin, RetrieveModelMixin):
         "surveyanswer_set",
     ).all()
     serializer_class = StartedSurveySerializer
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        serializer_class=CreateSurveyAnswerSerializer
+    )
+    def answer(self, request, pk=None):
+        started_survey: StartedSurvey = self.get_object()
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        question = serializer.validated_data.get("question")
+        answer = serializer.validated_data.get("answer")
+        text = serializer.validated_data.get("text")
+
+        result = SurveyAnswer.add(question, started_survey, answer, text)
+        return Response({"ok": result.id})

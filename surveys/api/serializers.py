@@ -91,7 +91,15 @@ class StartedSurveySerializer(serializers.ModelSerializer):
         model = StartedSurvey
         fields = (
             "id",
-            "survey",
-            "user",
             "answers"
+        )
+
+
+class CreateSurveyAnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SurveyAnswer
+        fields = (
+            "question",
+            "answer",
+            "text"
         )
