@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.request import Request
 from rest_framework.serializers import ValidationError
 from rest_framework.authentication import BasicAuthentication
 from rest_framework.decorators import action
@@ -92,6 +93,24 @@ class StartedSurveyView(GenericViewSet, ListModelMixin, RetrieveModelMixin):
         "surveyanswer_set",
     ).all()
     serializer_class = StartedSurveySerializer
+
+    def list(self, request: Request, *args, **kwargs):
+        user = request.query_params.get("user")
+        if not user:
+            raise ValidationError("Provide user argument in query")
+        queryset = self.filter_queryset(
+            StartedSurvey.objects.prefetch_related(
+                "surveyanswer_set",
+            ).filter(
+                user=int(user)
+            ))
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     @action(
         detail=True,
